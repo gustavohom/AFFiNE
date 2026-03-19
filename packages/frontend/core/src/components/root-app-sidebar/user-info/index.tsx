@@ -23,13 +23,7 @@ import { TeamList } from './team-list';
 import { UnknownUserIcon } from './unknow-user';
 
 export default function UserInfo() {
-  const session = useService(AuthService).session;
-  const account = useLiveData(session.account$);
-  return account ? (
-    <AuthorizedUserInfo account={account} />
-  ) : (
-    <UnauthorizedUserInfo />
-  );
+  return null;
 }
 
 const menuContentOptions: MenuProps['contentOptions'] = {

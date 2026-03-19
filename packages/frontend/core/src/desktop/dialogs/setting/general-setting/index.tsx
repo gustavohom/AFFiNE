@@ -108,23 +108,6 @@ export const useGeneralSettingList = (): GeneralSettingList => {
       });
     }
 
-    if (hasPaymentFeature) {
-      settings.splice(4, 0, {
-        key: 'plans',
-        title: t['com.affine.payment.title'](),
-        icon: <UpgradeIcon />,
-        testId: 'plans-panel-trigger',
-      });
-      if (loggedIn) {
-        settings.splice(4, 0, {
-          key: 'billing',
-          title: t['com.affine.payment.billing-setting.title'](),
-          icon: <PaymentIcon />,
-          testId: 'billing-panel-trigger',
-        });
-      }
-    }
-
     if (BUILD_CONFIG.isElectron) {
       settings.push({
         key: 'backup',
@@ -134,20 +117,12 @@ export const useGeneralSettingList = (): GeneralSettingList => {
       });
     }
 
-    settings.push(
-      {
-        key: 'experimental-features',
-        title: t['com.affine.settings.workspace.experimental-features'](),
-        icon: <ExperimentIcon />,
-        testId: 'experimental-features-trigger',
-      },
-      {
-        key: 'about',
-        title: t['com.affine.aboutAFFiNE.title'](),
-        icon: <InformationIcon />,
-        testId: 'about-panel-trigger',
-      }
-    );
+    settings.push({
+      key: 'experimental-features',
+      title: t['com.affine.settings.workspace.experimental-features'](),
+      icon: <ExperimentIcon />,
+      testId: 'experimental-features-trigger',
+    });
     return settings;
   }, [
     t,

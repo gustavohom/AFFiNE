@@ -215,17 +215,6 @@ export const SettingSidebar = ({
         {t['com.affine.settingSidebar.title']()}
       </div>
 
-      {loginStatus === 'unauthenticated' ? <SignInButton /> : null}
-      {loginStatus === 'authenticated' ? (
-        <Suspense>
-          <UserInfo
-            onAccountSettingClick={onAccountSettingClick}
-            active={activeTab === 'account'}
-            onTabChange={onTabChange}
-          />
-        </Suspense>
-      ) : null}
-
       <Scrollable.Root>
         <Scrollable.Viewport>
           {groups.map(group => (

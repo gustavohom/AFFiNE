@@ -19,47 +19,5 @@ export const EnableCloudPanel = ({
 }: {
   onCloseSetting?: () => void;
 }) => {
-  const t = useI18n();
-  const confirmEnableCloud = useEnableCloud();
-
-  const workspace = useService(WorkspaceService).workspace;
-  const name = useLiveData(workspace.name$);
-  const flavour = workspace.flavour;
-
-  const confirmEnableCloudAndClose = useCallback(() => {
-    if (!workspace) return;
-    confirmEnableCloud(workspace, {
-      onSuccess: () => {
-        onCloseSetting?.();
-      },
-    });
-  }, [confirmEnableCloud, onCloseSetting, workspace]);
-
-  if (flavour !== 'local') {
-    return null;
-  }
-
-  return (
-    <SettingRow
-      name={t['Workspace saved locally']({
-        name: name ?? UNTITLED_WORKSPACE_NAME,
-      })}
-      desc={t['Enable cloud hint']()}
-      spreadCol={false}
-      style={{
-        padding: '10px',
-        background: 'var(--affine-background-secondary-color)',
-        marginTop: '24px',
-      }}
-    >
-      <Button
-        data-testid="publish-enable-affine-cloud-button"
-        variant="primary"
-        onClick={confirmEnableCloudAndClose}
-        style={{ marginTop: '12px' }}
-      >
-        {t['Enable AFFiNE Cloud']()}
-      </Button>
-    </SettingRow>
-  );
+  return null;
 };

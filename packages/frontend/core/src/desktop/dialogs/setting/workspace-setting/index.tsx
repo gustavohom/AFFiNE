@@ -93,43 +93,10 @@ export const useWorkspaceSettingList = (): SettingSidebarItem[] => {
         testId: 'workspace-setting:properties',
       },
       {
-        key: 'workspace:members',
-        title: t['Members'](),
-        icon: <CollaborationIcon />,
-        testId: 'workspace-setting:members',
-      },
-      {
-        key: 'workspace:integrations',
-        title: t['com.affine.integration.integrations'](),
-        icon: <IntegrationsIcon />,
-        testId: 'workspace-setting:integrations',
-      },
-      {
         key: 'workspace:storage',
         title: t['Storage'](),
         icon: <SaveIcon />,
         testId: 'workspace-setting:storage',
-      },
-      {
-        key: 'workspace:embedding',
-        title:
-          t[
-            'com.affine.settings.workspace.indexer-embedding.embedding.title'
-          ](),
-        icon: <AiEmbeddingIcon />,
-        testId: 'workspace-setting:embedding',
-      },
-      showBilling && {
-        key: 'workspace:billing' as SettingTab,
-        title: t['com.affine.settings.workspace.billing'](),
-        icon: <PaymentIcon />,
-        testId: 'workspace-setting:billing',
-      },
-      showLicense && {
-        key: 'workspace:license' as SettingTab,
-        title: t['com.affine.settings.workspace.license'](),
-        icon: <PaymentIcon />,
-        testId: 'workspace-setting:license',
       },
     ].filter((item): item is SettingSidebarItem => !!item);
   }, [showBilling, showLicense, t]);

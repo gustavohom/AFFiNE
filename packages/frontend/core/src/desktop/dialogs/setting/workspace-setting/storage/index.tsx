@@ -1,16 +1,14 @@
 import {
   SettingHeader,
+  SettingRow,
   SettingWrapper,
 } from '@affine/component/setting-components';
-import { WorkspacePermissionService } from '@affine/core/modules/permissions';
+import { Button } from '@affine/component/ui/button';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useService } from '@toeverything/infra';
 
-import { EnableCloudPanel } from '../preference/enable-cloud';
 import { BlobManagementPanel } from './blob-management';
-import { DesktopExportPanel } from './export';
-import { WorkspaceQuotaPanel } from './workspace-quota';
 
 export const WorkspaceSettingStorage = ({
   onCloseSetting,
@@ -19,47 +17,47 @@ export const WorkspaceSettingStorage = ({
 }) => {
   const t = useI18n();
   const workspace = useService(WorkspaceService).workspace;
-  const workspacePermissionService = useService(
-    WorkspacePermissionService
-  ).permission;
-  const isTeam = useLiveData(workspacePermissionService.isTeam$);
-  const isOwner = useLiveData(workspacePermissionService.isOwner$);
 
-  const canExport = !isTeam || isOwner;
   return (
     <>
       <SettingHeader
         title={t['Storage']()}
         subtitle={t['com.affine.settings.workspace.storage.subtitle']()}
       />
-      {workspace.flavour === 'local' ? (
-        <>
-          <EnableCloudPanel onCloseSetting={onCloseSetting} />{' '}
-          {BUILD_CONFIG.isElectron && (
-            <SettingWrapper>
-              <DesktopExportPanel workspace={workspace} />
-            </SettingWrapper>
-          )}
-        </>
-      ) : (
-        <>
-          {isTeam ? (
-            <SettingWrapper>
-              <WorkspaceQuotaPanel />
-            </SettingWrapper>
-          ) : null}
 
-          {BUILD_CONFIG.isElectron && canExport && (
-            <SettingWrapper>
-              <DesktopExportPanel workspace={workspace} />
-            </SettingWrapper>
-          )}
+      <SettingWrapper>
+        <SettingRow
+          name="Web Backup"
+          desc="Download a .zip file containing all the workspace data from your local browser database"
+        >
+          <Button
+            variant="primary"
+            onClick={() => {
+              window.exportWorkspaceSnapshot().catch(console.error);
+            }}
+          >
+            Export Backup
+          </Button>
+        </SettingRow>
 
-          <SettingWrapper>
-            <BlobManagementPanel />
-          </SettingWrapper>
-        </>
-      )}
+        <SettingRow
+          name="Web Restore"
+          desc="Restore your workspace data from a .zip backup file (this may overwrite current data)"
+        >
+          <Button
+            variant="primary"
+            onClick={() => {
+              window.importWorkspaceSnapshot().catch(console.error);
+            }}
+          >
+            Restore Backup
+          </Button>
+        </SettingRow>
+      </SettingWrapper>
+
+      <SettingWrapper>
+        <BlobManagementPanel />
+      </SettingWrapper>
     </>
   );
 };

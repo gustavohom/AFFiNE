@@ -1,4 +1,5 @@
 // Import is already correct, no changes needed
+import { Loading } from '@affine/component';
 import {
   AddPageButton,
   AppDownloadButton,
@@ -10,6 +11,7 @@ import {
   SidebarScrollableContainer,
 } from '@affine/core/modules/app-sidebar/views';
 import { ExternalMenuLinkItem } from '@affine/core/modules/app-sidebar/views/menu-item/external-menu-link-item';
+import { BlobManagementService } from '@affine/core/modules/blob-management/services';
 import { AuthService, ServerService } from '@affine/core/modules/cloud';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
@@ -21,13 +23,16 @@ import type { Store } from '@blocksuite/affine/store';
 import {
   AiOutlineIcon,
   AllDocsIcon,
+  DeleteIcon,
+  ExportIcon,
+  FolderIcon,
   ImportIcon,
   JournalIcon,
   SettingsIcon,
 } from '@blocksuite/icons/rc';
 import { useLiveData, useService, useServices } from '@toeverything/infra';
 import type { ReactElement } from 'react';
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 
 import {
   CollapsibleSection,
@@ -89,30 +94,85 @@ const AllDocsButton = () => {
 };
 
 const AIChatButton = () => {
-  const t = useI18n();
-  const featureFlagService = useService(FeatureFlagService);
-  const serverService = useService(ServerService);
-  const serverFeatures = useLiveData(serverService.server.features$);
-  const enableAI = useLiveData(featureFlagService.flags.enable_ai.$);
+  return null;
+};
 
-  const { workbenchService } = useServices({
-    WorkbenchService,
-  });
-  const workbench = workbenchService.workbench;
-  const aiChatActive = useLiveData(
-    workbench.location$.selector(location => location.pathname === '/chat')
+const RefreshSvg = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 2v6h-6"></path>
+    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+    <path d="M3 22v-6h6"></path>
+    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+  </svg>
+);
+
+const ClearUnusedBlobsButton = () => {
+  const unusedBlobsEntity = useService(BlobManagementService).unusedBlobs;
+  const unusedBlobs = useLiveData(unusedBlobsEntity.unusedBlobs$);
+  const [clearing, setClearing] = useState(false);
+
+  useEffect(() => {
+    unusedBlobsEntity.revalidate();
+  }, [unusedBlobsEntity]);
+
+  const handleClear = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!unusedBlobs || unusedBlobs.length === 0) return;
+      setClearing(true);
+      for (const blob of unusedBlobs) {
+        await unusedBlobsEntity.deleteBlob(blob.key, true);
+      }
+      unusedBlobsEntity.revalidate();
+      setClearing(false);
+    },
+    [unusedBlobs, unusedBlobsEntity]
   );
 
-  if (!enableAI || !serverFeatures?.copilot) {
-    return null;
-  }
+  const handleRefresh = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      unusedBlobsEntity.revalidate();
+    },
+    [unusedBlobsEntity]
+  );
+
+  const blobCount = unusedBlobs?.length || 0;
 
   return (
-    <MenuLinkItem icon={<AiOutlineIcon />} active={aiChatActive} to={'/chat'}>
-      <span data-testid="ai-chat">
-        {t['com.affine.workspaceSubPath.chat']()}
-      </span>
-    </MenuLinkItem>
+    <MenuItem
+      icon={clearing ? <Loading /> : <FolderIcon />}
+      onClick={e => {
+        handleClear(e).catch(console.error);
+      }}
+      postfixDisplay="always"
+      postfix={
+        <div
+          onClick={handleRefresh}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '2px',
+            cursor: 'pointer',
+            opacity: 0.6,
+          }}
+          title="Detectar Blobs"
+        >
+          <RefreshSvg />
+        </div>
+      }
+    >
+      <span>Limpar Blobs ({blobCount})</span>
+    </MenuItem>
   );
 };
 
@@ -193,8 +253,6 @@ export const RootAppSidebar = memo((): ReactElement => {
         <div className={workspaceAndUserWrapper}>
           <div className={workspaceWrapper}>
             <WorkspaceNavigator
-              showEnableCloudButton
-              showSyncStatus
               open={workspaceSelectorOpen}
               onOpenChange={onWorkspaceSelectorOpenChange}
               dense
@@ -237,6 +295,7 @@ export const RootAppSidebar = memo((): ReactElement => {
           contentStyle={{ padding: '6px 8px 0 8px' }}
         >
           <TrashButton />
+          <ClearUnusedBlobsButton />
           <MenuItem
             data-testid="slider-bar-import-button"
             icon={<ImportIcon />}
@@ -244,18 +303,36 @@ export const RootAppSidebar = memo((): ReactElement => {
           >
             <span data-testid="import-modal-trigger">{t['Import']()}</span>
           </MenuItem>
-          <InviteMembersButton />
+          <MenuItem
+            data-testid="slider-bar-web-backup-button"
+            icon={<ExportIcon />}
+            onClick={() => {
+              window.exportWorkspaceSnapshot().catch(console.error);
+            }}
+          >
+            <span>Web Backup</span>
+          </MenuItem>
+          <MenuItem
+            data-testid="slider-bar-web-restore-button"
+            icon={<FolderIcon />}
+            onClick={() => {
+              window.importWorkspaceSnapshot().catch(console.error);
+            }}
+          >
+            <span>Web Restore</span>
+          </MenuItem>
+
           <TemplateDocEntrance />
           <ExternalMenuLinkItem
-            href="https://affine.pro/blog?tag=Release+Note"
+            href="https://affine.pro/"
             icon={<JournalIcon />}
-            label={t['com.affine.app-sidebar.learn-more']()}
+            label="Projeto Original (AFFiNE)"
           />
         </CollapsibleSection>
       </SidebarScrollableContainer>
       <SidebarContainer className={bottomContainer}>
         <SidebarAudioPlayer />
-        {BUILD_CONFIG.isElectron ? <UpdaterButton /> : <AppDownloadButton />}
+        {BUILD_CONFIG.isElectron ? <UpdaterButton /> : null}
       </SidebarContainer>
     </AppSidebar>
   );
