@@ -1,0 +1,1 @@
+git commit --no-verify -m "feat: customizações local-first e limpeza de UI"
